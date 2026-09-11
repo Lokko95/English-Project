@@ -16,33 +16,38 @@
 
 - [x] `package.json` с `@supabase/ssr`, `@supabase/supabase-js`
 - [x] `.env.local` заполнен: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-- [ ] Next.js-приложение ещё не создано
-- [ ] `.gitignore` отсутствует — `.env.local` с секретным ключом ничем не защищён от коммита
-- [ ] Git-репозиторий не инициализирован
+- [x] Next.js 16 + React 19 + Tailwind 4 + TypeScript установлены, сборка проходит
+- [x] `.gitignore` есть, `.env.local` не попадает в Git
+- [x] Git-репозиторий инициализирован
 - [ ] Схема БД, RLS, seed — не созданы
+
+Supabase CLI в системе не установлен: миграции Фазы 1 применяем через SQL Editor либо ставим CLI отдельно.
 
 **Важно:** `SUPABASE_SERVICE_ROLE_KEY` в `.env.local` даёт полный доступ к базе в обход RLS. Он должен попасть в `.gitignore` до первого коммита и никогда не использоваться в клиентском коде.
 
 ## Фаза 0 — Каркас проекта
 
-- [ ] `create-next-app` (TypeScript, App Router, Tailwind) поверх текущей папки, не потеряв `.env.local`
-- [ ] `.gitignore` (`node_modules`, `.env*.local`, `.next`)
-- [ ] `AGENTS.md` в корне — зафиксировать продуктовые правила и ограничения MVP из ТЗ
-- [ ] `.cursor/rules/product.mdc` — то же самое как rule для агента
-- [ ] `src/lib/supabase/client.ts` (браузер, anon key), `server.ts` (RSC/Server Actions, anon key + сессия), `admin.ts` (service role, только для создания пользователей)
-- [ ] Проверка: `npm run dev` поднимается, пустая главная страница рендерится
+- [x] Next.js (TypeScript, App Router, Tailwind) развёрнут вручную поверх существующей папки — `create-next-app` не применим из-за конфликта с уже существующими `package.json`, `.git`, `ROADMAP.md`
+- [x] `.gitignore` (`node_modules`, `.env*.local`, `.next`, `*.tsbuildinfo`)
+- [x] `AGENTS.md` в корне — продуктовые правила и ограничения MVP
+- [x] `.cursor/rules/product.mdc` — то же самое как rule для агента
+- [x] `src/lib/supabase/client.ts` (браузер), `server.ts` (RSC/Server Actions), `admin.ts` (service role, `server-only`, только Admin Auth API)
+- [x] Проверка: `npm run dev` поднимается, главная страница отдаёт 200; `build`, `lint`, `typecheck` чистые; `sb_secret_` отсутствует в клиентских чанках
 
 ## Фаза 1 — Схема БД, Auth, RLS
 
-- [ ] `supabase/migrations/` — таблицы: `profiles`, `groups`, `students`, `lessons`, `vocabulary_items`, `lesson_plans`, `student_lesson_progress`, `attendance`, `student_notes`, `placement_questions`
-- [ ] Enum роли `STUDENT | TEACHER | ADMIN`
-- [ ] Триггер `on_auth_user_created` → авто-создание строки в `profiles`
-- [ ] Хелпер `public.current_role()` (security definer) для политик без рекурсии
-- [ ] RLS-политики по разделу «RLS» плана (свои данные / свои группы / общий контент уроков / план урока только TEACHER+ADMIN)
+- [x] `supabase/migrations/` — таблицы: `profiles`, `groups`, `students`, `lessons`, `vocabulary_items`, `lesson_plans`, `student_lesson_progress`, `attendance`, `student_notes`, `placement_questions`
+- [x] Enum роли `STUDENT | TEACHER | ADMIN`
+- [x] Триггер `on_auth_user_created` → авто-создание строки в `profiles` (+ `students`, если роль `STUDENT`)
+- [x] Хелперы (security definer): `public.current_app_role()`, `public.is_admin()`, `public.current_student_group_id()`, `public.teaches_group()` — без рекурсии RLS. Названо `current_app_role()`, а не `current_role()` из черновика, чтобы не совпадать с зарезервированным именем Postgres
+- [x] Триггер `prevent_role_self_escalation` — доп. защита от смены своей роли напрямую через UPDATE, сверх RLS-политики
+- [x] RLS-политики на все 10 таблиц по разделу «RLS» плана
+- [x] `supabase/seed.sql` — 2 урока (11 и 10 слов, грамматика, план урока), 12 вопросов placement-теста. Идемпотентно (фиксированные id + `on conflict do nothing`)
 - [ ] В Supabase Dashboard → Auth: выключить публичный Sign up
-- [ ] `supabase/seed.sql` — 2 урока (10–12 слов каждый, грамматика), 10–15 вопросов placement-теста
 - [ ] Первый ADMIN создаётся вручную (Dashboard/SQL), проверка входа
-- [ ] Проверка: `supabase db push` (или SQL Editor) применяет миграции без ошибок
+- [ ] Применить миграции к hosted-проекту и проверить, что применились без ошибок
+
+SQL-файлы написаны и вычитаны вручную (нет локального Postgres/Docker для реального прогона — по правилам проекта не поднимаем Docker Postgres). Применение к вашему hosted-проекту и создание первого админа — ждут вашего решения по способу применения (см. следующее сообщение) и остаются открытыми пунктами.
 
 ## Фаза 2 — Студент
 
