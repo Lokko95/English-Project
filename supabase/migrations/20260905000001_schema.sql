@@ -1,6 +1,10 @@
 -- Роли и таблицы MVP. RLS подключается отдельной миграцией (20260905000004),
 -- поэтому до её применения таблицы открыты только для service_role/postgres.
 
+-- gen_random_uuid() входит в ядро Postgres 13+, но на некоторых образах
+-- доступен только через pgcrypto — включаем на всякий случай, безопасно.
+create extension if not exists pgcrypto;
+
 create type public.user_role as enum ('STUDENT', 'TEACHER', 'ADMIN');
 
 create table public.profiles (

@@ -24,7 +24,7 @@ export async function createClient() {
             cookieStore.set(name, value, options);
           }
         } catch {
-          // Server Component не может писать cookies — сессию обновляет middleware.
+          // Server Component не может писать cookies — сессию обновляет proxy.ts.
         }
       },
     },
