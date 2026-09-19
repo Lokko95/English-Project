@@ -1,12 +1,26 @@
 -- Сиды учебного контента. Пользователей Auth здесь не создаём — это делает
 -- только Admin API / Dashboard (см. ROADMAP.md, Фаза 4). Идемпотентно:
 -- фиксированные id + on conflict do nothing, можно применять повторно.
+--
+-- Уроки принадлежат группе, а не глобальному каталогу. Демо-группа нужна,
+-- чтобы было куда повесить два примера урока; новые группы создаются пустыми.
 
--- ── Урок 1: Present Simple ─────────────────────────────────────────────────
+insert into public.groups (id, name, level, meeting_url, evening_time)
+values (
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  'Демо-группа',
+  'A1',
+  'https://zoom.us/j/000000000',
+  '19:00 МСК'
+)
+on conflict (id) do nothing;
 
-insert into public.lessons (id, order_index, title, grammar_title, grammar_body, materials)
+-- ── Урок 1: Present Simple (группа «Демо-группа») ──────────────────────────
+
+insert into public.lessons (id, group_id, order_index, title, grammar_title, grammar_body, materials)
 values (
   '11111111-1111-1111-1111-111111111111',
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
   1,
   'Daily Routines',
   'Present Simple',
@@ -46,11 +60,12 @@ values
   ('a1111111-1111-1111-1111-000000000011', '11111111-1111-1111-1111-111111111111', 'occasionally', 'иногда, время от времени', 'They occasionally work late.', '/əˈkeɪʒnəli/', 11)
 on conflict (id) do nothing;
 
--- ── Урок 2: Present Continuous ──────────────────────────────────────────────
+-- ── Урок 2: Present Continuous (группа «Демо-группа») ───────────────────────
 
-insert into public.lessons (id, order_index, title, grammar_title, grammar_body, materials)
+insert into public.lessons (id, group_id, order_index, title, grammar_title, grammar_body, materials)
 values (
   '22222222-2222-2222-2222-222222222222',
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
   2,
   'Right Now',
   'Present Continuous',
@@ -89,6 +104,19 @@ values
   ('b2222222-2222-2222-2222-000000000009', '22222222-2222-2222-2222-222222222222', 'to keep doing', 'продолжать делать', 'She keeps interrupting the lesson.', '/kiːp ˈduːɪŋ/', 9),
   ('b2222222-2222-2222-2222-000000000010', '22222222-2222-2222-2222-222222222222', 'at the moment', 'в данный момент', 'He is not available at the moment.', '/æt ðə ˈməʊmənt/', 10)
 on conflict (id) do nothing;
+
+-- Текущий урок демо-группы — первый, только если этот урок действительно
+-- принадлежит демо-группе (на уже заполненной базе уроки могли быть
+-- привязаны миграцией к другой группе).
+update public.groups
+set current_lesson_id = '11111111-1111-1111-1111-111111111111'
+where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+  and current_lesson_id is null
+  and exists (
+    select 1 from public.lessons l
+    where l.id = '11111111-1111-1111-1111-111111111111'
+      and l.group_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+  );
 
 -- ── Публичный тест на определение уровня ───────────────────────────────────
 
