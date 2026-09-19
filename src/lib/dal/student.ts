@@ -22,7 +22,7 @@ export async function requireStudent() {
   if (student?.group_id) {
     const { data } = await supabase
       .from("groups")
-      .select("id, name, teacher_id, meeting_url, evening_time, current_lesson_id")
+      .select("id, name, level, teacher_id, meeting_url, evening_time, current_lesson_id")
       .eq("id", student.group_id)
       .single();
     group = (data as Group) ?? null;

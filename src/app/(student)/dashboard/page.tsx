@@ -8,11 +8,15 @@ export default async function DashboardPage() {
   const { userId, group } = await requireStudent();
   const supabase = await createClient();
 
-  const { data: lessonsData } = await supabase
-    .from("lessons")
-    .select("id, order_index, title, grammar_title, grammar_body, materials, created_at")
-    .order("order_index");
-  const lessons = (lessonsData as Lesson[]) ?? [];
+  let lessons: Lesson[] = [];
+  if (group) {
+    const { data: lessonsData } = await supabase
+      .from("lessons")
+      .select("id, group_id, order_index, title, grammar_title, grammar_body, materials, created_at")
+      .eq("group_id", group.id)
+      .order("order_index");
+    lessons = (lessonsData as Lesson[]) ?? [];
+  }
 
   const { data: progressData } = await supabase
     .from("student_lesson_progress")
@@ -29,72 +33,70 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <section>
-        <h1 className="text-2xl font-semibold">Дашборд</h1>
-        <p className="mt-1 text-gray-600">
+        <h1 className="nb-heading-1">Дашборд</h1>
+        <p className="mt-1 text-muted">
           Прогресс: {completedCount} из {lessons.length} уроков подготовлено
         </p>
       </section>
 
-      {!group && (
-        <section className="rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-800">
-          Группа пока не назначена. Обратитесь к администратору.
-        </section>
-      )}
+      {!group && <section className="nb-callout-warning">Группа пока не назначена. Обратитесь к администратору.</section>}
 
       {group && (
-        <section className="rounded-md border border-gray-200 p-4">
-          <h2 className="font-medium">Вечерний урок</h2>
-          <p className="mt-1 text-gray-600">Группа: {group.name}</p>
-          {group.evening_time && <p className="text-gray-600">Время: {group.evening_time}</p>}
+        <section className="nb-card">
+          <h2 className="nb-heading-2">Вечерний урок</h2>
+          <p className="mt-1 text-ink">
+            Группа: {group.name} ({group.level})
+          </p>
+          {group.evening_time && <p className="text-ink">Время: {group.evening_time}</p>}
           {group.meeting_url ? (
-            <a
-              href={group.meeting_url}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-2 inline-block text-blue-600 underline"
-            >
+            <a href={group.meeting_url} target="_blank" rel="noreferrer" className="nb-link mt-2 inline-block">
               Ссылка на онлайн-урок
             </a>
           ) : (
-            <p className="mt-2 text-gray-500">Ссылка на встречу пока не указана</p>
+            <p className="mt-2 text-muted">Ссылка на встречу пока не указана</p>
           )}
         </section>
       )}
 
       {currentLesson && (
-        <section className="rounded-md border border-gray-900 p-4">
-          <h2 className="font-medium">Текущий урок</h2>
-          <p className="mt-1 text-gray-800">{currentLesson.title}</p>
-          <Link href={`/lessons/${currentLesson.id}`} className="mt-2 inline-block text-blue-600 underline">
+        <section className="nb-card-highlight">
+          <h2 className="nb-heading-2">Текущий урок</h2>
+          <p className="mt-1 text-ink">{currentLesson.title}</p>
+          <Link href={`/lessons/${currentLesson.id}`} className="nb-btn nb-btn-primary mt-3 w-full sm:w-fit">
             Готовиться к уроку
           </Link>
         </section>
       )}
 
-      <section>
-        <h2 className="font-medium">Список уроков</h2>
-        <ul className="mt-2 flex flex-col gap-2">
-          {lessons.map((lesson) => {
-            const status = progressByLesson.get(lesson.id);
-            return (
-              <li
-                key={lesson.id}
-                className="flex items-center justify-between rounded-md border border-gray-200 px-4 py-2"
-              >
-                <Link href={`/lessons/${lesson.id}`} className="text-gray-900 hover:underline">
-                  {lesson.order_index}. {lesson.title}
-                </Link>
-                <span className="text-sm text-gray-500">
-                  {status === "COMPLETED" ? "подготовлено ✓" : "не начато"}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+      {group && (
+        <section>
+          <h2 className="nb-heading-2">Список уроков</h2>
+          {lessons.length === 0 ? (
+            <p className="mt-2 text-muted">Доступных уроков пока нет.</p>
+          ) : (
+            <ul className="mt-2 flex flex-col gap-2">
+              {lessons.map((lesson) => {
+                const status = progressByLesson.get(lesson.id);
+                return (
+                  <li key={lesson.id} className="nb-card-flat flex items-center justify-between gap-3">
+                    <Link href={`/lessons/${lesson.id}`} className="font-semibold text-ink hover:underline">
+                      {lesson.order_index}. {lesson.title}
+                    </Link>
+                    {status === "COMPLETED" ? (
+                      <span className="nb-badge nb-badge-success">Подготовлено ✓</span>
+                    ) : (
+                      <span className="nb-badge nb-badge-muted">Не начато</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
 
       <section>
-        <Link href="/words" className="text-blue-600 underline">
+        <Link href="/words" className="nb-link">
           Все ранее изученные слова
         </Link>
       </section>

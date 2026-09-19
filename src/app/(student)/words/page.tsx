@@ -17,8 +17,8 @@ export default async function WordsPage() {
   if (lessonIds.length === 0) {
     return (
       <div>
-        <h1 className="text-2xl font-semibold">Все слова</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="nb-heading-1">Все слова</h1>
+        <p className="mt-2 text-muted">
           Здесь появятся слова из уроков, которые вы отметите как подготовленные.
         </p>
       </div>
@@ -27,7 +27,7 @@ export default async function WordsPage() {
 
   const { data: lessonsData } = await supabase
     .from("lessons")
-    .select("id, order_index, title, grammar_title, grammar_body, materials, created_at")
+    .select("id, group_id, order_index, title, grammar_title, grammar_body, materials, created_at")
     .in("id", lessonIds)
     .order("order_index");
   const lessons = (lessonsData as Lesson[]) ?? [];
@@ -41,25 +41,23 @@ export default async function WordsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-2xl font-semibold">Все слова</h1>
+      <h1 className="nb-heading-1">Все слова</h1>
       {lessons.map((lesson) => (
         <section key={lesson.id}>
-          <h2 className="font-medium">
+          <h2 className="nb-heading-2">
             {lesson.order_index}. {lesson.title}
           </h2>
           <ul className="mt-2 flex flex-col gap-2">
             {vocabulary
               .filter((item) => item.lesson_id === lesson.id)
               .map((item) => (
-                <li key={item.id} className="rounded-md border border-gray-200 p-3">
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-medium text-gray-900">{item.word}</span>
-                    {item.transcription && (
-                      <span className="text-sm text-gray-500">{item.transcription}</span>
-                    )}
-                    <span className="text-gray-600">— {item.translation}</span>
+                <li key={item.id} className="nb-card-flat">
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <span className="font-bold text-ink">{item.word}</span>
+                    {item.transcription && <span className="text-sm text-muted">{item.transcription}</span>}
+                    <span className="text-ink">— {item.translation}</span>
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">{item.example}</p>
+                  <p className="mt-1 text-sm text-muted">{item.example}</p>
                 </li>
               ))}
           </ul>

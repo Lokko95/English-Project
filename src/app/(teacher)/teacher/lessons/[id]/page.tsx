@@ -1,48 +1,67 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { requireStudent } from "@/lib/dal/student";
+import { requireTeacher } from "@/lib/dal/teacher";
 import { createClient } from "@/lib/supabase/server";
-import type { Lesson, VocabularyItem } from "@/lib/types";
+import type { Group, Lesson, VocabularyItem } from "@/lib/types";
 
-import { markLessonPrepared } from "./actions";
-
-export default async function LessonPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function TeacherLessonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { userId } = await requireStudent();
+  await requireTeacher();
   const supabase = await createClient();
 
   const { data: lessonData } = await supabase
     .from("lessons")
     .select("id, group_id, order_index, title, grammar_title, grammar_body, materials, created_at")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
   if (!lessonData) {
     notFound();
   }
   const lesson = lessonData as Lesson;
 
-  const { data: vocabData } = await supabase
-    .from("vocabulary_items")
-    .select("id, lesson_id, word, translation, example, transcription, order_index")
-    .eq("lesson_id", id)
-    .order("order_index");
+  const [{ data: groupData }, { data: vocabData }, { data: planData }] = await Promise.all([
+    supabase
+      .from("groups")
+      .select("id, name, level, teacher_id, meeting_url, evening_time, current_lesson_id")
+      .eq("id", lesson.group_id)
+      .maybeSingle(),
+    supabase
+      .from("vocabulary_items")
+      .select("id, lesson_id, word, translation, example, transcription, order_index")
+      .eq("lesson_id", id)
+      .order("order_index"),
+    supabase.from("lesson_plans").select("body").eq("lesson_id", id).maybeSingle(),
+  ]);
+
+  if (!groupData) {
+    notFound();
+  }
+  const group = groupData as Group;
   const vocabulary = (vocabData as VocabularyItem[]) ?? [];
-
-  const { data: progress } = await supabase
-    .from("student_lesson_progress")
-    .select("status")
-    .eq("student_id", userId)
-    .eq("lesson_id", id)
-    .maybeSingle();
-
-  const isCompleted = progress?.status === "COMPLETED";
+  const planBody = (planData?.body as string | undefined) ?? null;
 
   return (
     <div className="flex flex-col gap-8">
       <section>
-        <span className="nb-badge nb-badge-primary">Урок {lesson.order_index}</span>
-        <h1 className="nb-heading-1 mt-2">{lesson.title}</h1>
+        <p className="mb-1">
+          <Link href={`/teacher/groups/${group.id}`} className="nb-breadcrumb">
+            {group.name}
+          </Link>
+          <span className="text-muted"> · урок {lesson.order_index}</span>
+        </p>
+        <h1 className="nb-heading-1">{lesson.title}</h1>
+        <p className="mt-1 text-sm text-muted">Только просмотр — план нельзя редактировать.</p>
+      </section>
+
+      <section className="nb-card-highlight">
+        <h2 className="nb-heading-2">План урока</h2>
+        {planBody ? (
+          <p className="mt-2 whitespace-pre-wrap break-words text-ink">{planBody}</p>
+        ) : (
+          <p className="mt-2 text-muted">План пока не добавлен.</p>
+        )}
       </section>
 
       <section className="nb-card">
@@ -71,18 +90,6 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
             </li>
           ))}
         </ul>
-      </section>
-
-      <section>
-        {isCompleted ? (
-          <p className="nb-callout-success">Подготовлено ✓</p>
-        ) : (
-          <form action={markLessonPrepared.bind(null, lesson.id)}>
-            <button type="submit" className="nb-btn nb-btn-primary w-full sm:w-fit">
-              Я подготовился
-            </button>
-          </form>
-        )}
       </section>
     </div>
   );

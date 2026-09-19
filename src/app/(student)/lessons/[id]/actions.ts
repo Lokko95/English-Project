@@ -9,6 +9,11 @@ export async function markLessonPrepared(lessonId: string) {
   const { userId } = await requireRole("STUDENT");
   const supabase = await createClient();
 
+  const { data: lesson } = await supabase.from("lessons").select("id").eq("id", lessonId).maybeSingle();
+  if (!lesson) {
+    throw new Error("Урок недоступен");
+  }
+
   const { error } = await supabase.from("student_lesson_progress").upsert({
     student_id: userId,
     lesson_id: lessonId,

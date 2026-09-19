@@ -10,8 +10,11 @@ export interface Profile {
   created_at: string;
 }
 
+export type GroupLevel = "A1" | "A2" | "B1" | "B2";
+
 export interface Lesson {
   id: string;
+  group_id: string;
   order_index: number;
   title: string;
   grammar_title: string;
@@ -33,6 +36,7 @@ export interface VocabularyItem {
 export interface Group {
   id: string;
   name: string;
+  level: GroupLevel;
   teacher_id: string | null;
   meeting_url: string | null;
   evening_time: string | null;
@@ -52,3 +56,37 @@ export interface StudentLessonProgress {
   status: LessonProgressStatus;
   completed_at: string | null;
 }
+
+export interface StudentNote {
+  id: string;
+  student_id: string;
+  author_id: string | null;
+  body: string;
+  created_at: string;
+}
+
+export interface Attendance {
+  id: string;
+  student_id: string;
+  group_id: string;
+  attended_on: string;
+  present: boolean;
+}
+
+export interface PlacementQuestion {
+  id: string;
+  order_index: number;
+  question: string;
+  options: {
+    choices: string[];
+    correct: number;
+  };
+  level_hint: GroupLevel | null;
+}
+
+export type PublicPlacementQuestion = {
+  id: string;
+  order_index: number;
+  question: string;
+  choices: string[];
+};

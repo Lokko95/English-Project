@@ -11,42 +11,27 @@ export function ChangePasswordForm() {
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="password" className="text-sm text-gray-700">
-          Новый пароль
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          minLength={8}
-          className="rounded-md border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
-        />
+      <div className="nb-label flex flex-col gap-1.5">
+        <label htmlFor="password">Новый пароль</label>
+        <input id="password" name="password" type="password" required minLength={8} className="nb-input" />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="password_confirm" className="text-sm text-gray-700">
-          Повторите пароль
-        </label>
+      <div className="nb-label flex flex-col gap-1.5">
+        <label htmlFor="password_confirm">Повторите пароль</label>
         <input
           id="password_confirm"
           name="password_confirm"
           type="password"
           required
           minLength={8}
-          className="rounded-md border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
+          className="nb-input"
         />
       </div>
 
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
-      {state?.success && <p className="text-sm text-green-700">Пароль изменён</p>}
+      {state?.error && <p className="nb-callout-danger">{state.error}</p>}
+      {state?.success && <p className="nb-callout-success">Пароль изменён</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-fit rounded-md bg-gray-900 px-4 py-2 text-white transition hover:bg-gray-700 disabled:opacity-50"
-      >
+      <button type="submit" disabled={pending} className="nb-btn nb-btn-primary w-full sm:w-fit">
         {pending ? "Сохраняем..." : "Сменить пароль"}
       </button>
     </form>

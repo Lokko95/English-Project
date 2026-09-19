@@ -1,16 +1,178 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #111827;
+  --background: #f4f1ea;
+  --foreground: #14120f;
+
+  --paper: #ffffff;
+  --ink: #14120f;
+  --muted: #6b6558;
+
+  --primary: #ffd23f;
+  --primary-strong: #ffc300;
+  --accent: #2648d6;
+  --success: #15803d;
+  --warning: #b45309;
+  --danger: #dc2626;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  --shadow-brutal-sm: 2px 2px 0 0 var(--ink);
+  --shadow-brutal: 4px 4px 0 0 var(--ink);
+  --shadow-brutal-lg: 6px 6px 0 0 var(--ink);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+/* Neo-brutalism: единая система для карточек, кнопок, полей, badge и навигации.
+   Каждый класс задаёт только неповторяющиеся свойства — размерные и цветовые
+   модификаторы комбинируются в className, а не через вложенные @apply, чтобы
+   порядок каскада оставался предсказуемым. */
+@layer components {
+  .nb-heading-1 {
+    @apply text-2xl font-black tracking-tight text-ink sm:text-3xl;
+  }
+
+  .nb-heading-2 {
+    @apply text-lg font-bold text-ink sm:text-xl;
+  }
+
+  .nb-heading-3 {
+    @apply text-sm font-bold text-ink;
+  }
+
+  .nb-text-muted {
+    @apply text-sm text-muted;
+  }
+
+  .nb-container {
+    @apply mx-auto w-full max-w-3xl px-4 sm:px-6;
+  }
+
+  .nb-container-wide {
+    @apply mx-auto w-full max-w-4xl px-4 sm:px-6;
+  }
+
+  .nb-card {
+    @apply rounded-xl border-2 border-ink bg-paper p-4 shadow-brutal sm:p-5;
+  }
+
+  .nb-card-flat {
+    @apply rounded-xl border-2 border-ink bg-paper p-4 sm:p-5;
+  }
+
+  .nb-card-highlight {
+    @apply rounded-xl border-2 border-ink bg-primary/20 p-4 shadow-brutal sm:p-5;
+  }
+
+  .nb-callout-warning {
+    @apply rounded-xl border-2 border-warning bg-warning/15 p-3 text-sm font-semibold text-ink;
+  }
+
+  .nb-callout-success {
+    @apply rounded-xl border-2 border-success bg-success/15 p-3 text-sm font-semibold text-ink;
+  }
+
+  .nb-callout-danger {
+    @apply rounded-xl border-2 border-danger bg-danger/10 p-3 text-sm font-semibold text-danger;
+  }
+
+  .nb-btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-lg border-2 border-ink px-4 py-2.5 text-sm font-bold text-ink shadow-brutal-sm transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+  }
+
+  .nb-btn-primary {
+    @apply bg-primary hover:bg-primary-strong;
+  }
+
+  .nb-btn-secondary {
+    @apply bg-paper hover:bg-background;
+  }
+
+  .nb-btn-danger {
+    @apply border-danger bg-paper text-danger hover:bg-danger hover:text-paper;
+  }
+
+  .nb-btn-sm {
+    @apply min-h-9 px-3 py-1.5 text-xs;
+  }
+
+  .nb-label {
+    @apply text-sm font-bold text-ink;
+  }
+
+  .nb-input {
+    @apply min-h-11 w-full rounded-lg border-2 border-ink bg-paper px-3 py-2.5 text-base text-ink outline-none transition placeholder:text-muted focus:shadow-brutal-sm disabled:opacity-60;
+  }
+
+  .nb-input-sm {
+    @apply min-h-9 px-2.5 py-1.5 text-sm;
+  }
+
+  .nb-badge {
+    @apply inline-flex items-center gap-1 whitespace-nowrap rounded-md border-2 border-ink bg-paper px-2 py-0.5 text-xs font-bold text-ink;
+  }
+
+  .nb-badge-primary {
+    @apply bg-primary;
+  }
+
+  .nb-badge-success {
+    @apply border-success bg-success/20;
+  }
+
+  .nb-badge-warning {
+    @apply border-warning bg-warning/20;
+  }
+
+  .nb-badge-danger {
+    @apply border-danger bg-danger text-paper;
+  }
+
+  .nb-badge-muted {
+    @apply border-ink/25 bg-background text-muted;
+  }
+
+  .nb-link {
+    @apply font-bold text-accent underline decoration-2 underline-offset-2 hover:text-ink;
+  }
+
+  .nb-link-danger {
+    @apply font-bold text-danger underline decoration-2 underline-offset-2 hover:text-ink;
+  }
+
+  .nb-breadcrumb {
+    @apply text-sm font-bold text-muted underline decoration-2 underline-offset-2 hover:text-ink;
+  }
+
+  .nb-header {
+    @apply border-b-4 border-primary bg-ink text-paper;
+  }
+
+  .nb-nav-link {
+    @apply inline-flex items-center rounded-md px-2.5 py-2 text-sm font-bold text-paper/85 transition hover:bg-paper/15 hover:text-paper;
+  }
 }

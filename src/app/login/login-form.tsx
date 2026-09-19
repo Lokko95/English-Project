@@ -11,41 +11,26 @@ export function LoginForm() {
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="email" className="text-sm text-gray-700">
-          Email
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          className="rounded-md border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
-        />
+      <div className="nb-label flex flex-col gap-1.5">
+        <label htmlFor="email">Email</label>
+        <input id="email" name="email" type="email" required autoComplete="email" className="nb-input" />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="password" className="text-sm text-gray-700">
-          Пароль
-        </label>
+      <div className="nb-label flex flex-col gap-1.5">
+        <label htmlFor="password">Пароль</label>
         <input
           id="password"
           name="password"
           type="password"
           required
           autoComplete="current-password"
-          className="rounded-md border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
+          className="nb-input"
         />
       </div>
 
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state?.error && <p className="nb-callout-danger">{state.error}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-md bg-gray-900 px-4 py-2 text-white transition hover:bg-gray-700 disabled:opacity-50"
-      >
+      <button type="submit" disabled={pending} className="nb-btn nb-btn-primary w-full">
         {pending ? "Входим..." : "Войти"}
       </button>
     </form>
